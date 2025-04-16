@@ -1,0 +1,9 @@
+CREATE TABLE Appointments (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES Users(id) ON DELETE CASCADE,
+    schedule_id INT REFERENCES Schedules(id) ON DELETE CASCADE,
+    appointment_date DATE NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
