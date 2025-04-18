@@ -83,3 +83,19 @@ func JWTMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// Role-Based Auth Middleware (tes)
+func RoleRequired(role string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		roleFromToken := c.MustGet("role").(string)
+
+		// Cek role dari token
+		if roleFromToken != role && role != "any" {
+			c.JSON(403, gin.H{"error": "Forbidden: You do not have the required role"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}

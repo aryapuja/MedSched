@@ -131,3 +131,236 @@ func RegisterUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
 }
+
+// @Summary Get all users
+// @Description This endpoint allows an admin to view all registered users in the system.
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.User
+// @Failure 500 {object} models.ErrorResponse
+// @Router /users [get]
+func GetAllUsers(c *gin.Context) {
+	// Panggil service untuk mengambil semua pengguna
+	users, err := services.GetAllUsers()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{"Error fetching users"})
+		return
+	}
+
+	c.JSON(http.StatusOK, users)
+}
+
+// @Summary Get user data based on query parameters
+// @Description This endpoint allows an admin to view users based on either username or role.
+// @Accept json
+// @Produce json
+// @Param username query string false "Username of the user"
+// @Param role query string false "Role of the user"
+// @Success 200 {array} models.User "List of users"
+// @Failure 400 {object} models.ErrorResponse "Invalid request"
+// @Failure 404 {object} models.ErrorResponse "User(s) not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /users/by? [get]
+func GetUsersByQuery(c *gin.Context) {
+	username := c.DefaultQuery("username", "")
+	role := c.DefaultQuery("role", "")
+
+	// ambil data pengguna berdasarkan query
+	if username != "" {
+		// Ambil user berdasarkan username
+		users, err := services.GetUserByUsername(username)
+		if err != nil {
+			c.JSON(http.StatusNotFound, models.ErrorResponse{"User not found"})
+			return
+		}
+		c.JSON(http.StatusOK, users)
+	} else if role != "" {
+		// Ambil user berdasarkan role
+		users, err := services.GetUserByRole(role)
+		if err != nil {
+			c.JSON(http.StatusNotFound, models.ErrorResponse{"Users with the specified role not found"})
+			return
+		}
+		if len(users) == 0 {
+			c.JSON(http.StatusNotFound, models.ErrorResponse{"No users found with role: " + role})
+			return
+		}
+		c.JSON(http.StatusOK, users)
+	} else {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{"Username or role must be provided"})
+	}
+}
+
+// @Summary Update user data
+// @Description This endpoint allows an admin to update a user's data by either username or ID using query parameters.
+// @Accept json
+// @Produce json
+// @Param username query string false "Username of the user"
+// @Param id query string false "ID of the user"
+// @Param user body models.User true "User update data"
+// @Success 200 {object} models.SuccessResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /users/by [put]
+func UpdateUser(c *gin.Context) {
+	username := c.DefaultQuery("username", "")
+	id := c.DefaultQuery("id", "")
+
+	// Cek apakah salah satu parameter query ada
+	if username == "" && id == "" {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{"Username or ID must be provided"})
+		return
+	}
+
+	// Periksa ID/Username
+	var user *models.User
+	var err error
+	if username != "" {
+		user, err = services.GetUserByUsername(username)
+	} else if id != "" {
+		user, err = services.GetUserByID(id) // Pastikan kamu memiliki fungsi GetUserByID di service
+	}
+
+	if err != nil || user == nil {
+		c.JSON(http.StatusNotFound, models.ErrorResponse{"User not found"})
+		return
+	}
+
+	// Bind data pengguna untuk diupdate
+	var updatedUser models.User
+	if err := c.ShouldBindJSON(&updatedUser); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{"Invalid input"})
+		return
+	}
+
+	// Update data pengguna
+	var updateErr error
+	if username != "" {
+		updateErr = services.UpdateUser(username, &updatedUser)
+	} else if id != "" {
+		updateErr = services.UpdateUser(id, &updatedUser)
+	}
+
+	if updateErr != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{"Error updating user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.SuccessResponse{Message: "User updated successfully"})
+}
+
+// @Summary Get the current user's profile
+// @Description This endpoint allows the user to view their own profile.
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.User
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 401 {object} models.ErrorResponse
+// @Router /users/me [get]
+func GetMyProfile(c *gin.Context) {
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	user, err := services.GetUserByUsername(username.(string))
+	if err != nil {
+		c.JSON(http.StatusNotFound, models.ErrorResponse{"User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
+// @Summary Update the current user's profile
+// @Description This endpoint allows the user to update their own profile.
+// @Accept json
+// @Produce json
+// @Param user body models.User true "User update data"
+// @Success 200 {object} models.SuccessResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 401 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Router /users/me [put]
+func UpdateMyProfile(c *gin.Context) {
+	username, exists := c.Get("username")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	var user models.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{"Invalid input"})
+		return
+	}
+
+	// Update data pengguna
+	if err := services.UpdateUser(username.(string), &user); err != nil {
+		if err.Error() == "user not found" {
+			c.JSON(http.StatusNotFound, models.ErrorResponse{"User not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{"Error updating user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.SuccessResponse{Message: "User updated successfully"})
+}
+
+// @Summary Delete a user
+// @Description This endpoint allows an admin to delete a user by either username or ID using query parameters.
+// @Accept json
+// @Produce json
+// @Param username query string false "Username of the user"
+// @Param id query string false "ID of the user"
+// @Success 200 {object} models.SuccessResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /users/by [delete]
+func DeleteUser(c *gin.Context) {
+	username := c.DefaultQuery("username", "")
+	id := c.DefaultQuery("id", "")
+
+	// Cek apakah salah satu parameter query ada
+	if username == "" && id == "" {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{"Username or ID must be provided"})
+		return
+	}
+
+	// Periksa ID/Username
+	var user *models.User
+	var err error
+	if username != "" {
+		user, err = services.GetUserByUsername(username)
+	} else if id != "" {
+		user, err = services.GetUserByID(id) // Pastikan kamu memiliki fungsi GetUserByID di service
+	}
+
+	if err != nil || user == nil {
+		c.JSON(http.StatusNotFound, models.ErrorResponse{"User not found"})
+		return
+	}
+
+	if username != "" {
+		// Hapus berdasarkan username
+		err = services.DeleteUser(username)
+	} else if id != "" {
+		// Hapus berdasarkan ID
+		err = services.DeleteUser(id)
+	}
+
+	if err != nil {
+		if err.Error() == "user not found" {
+			c.JSON(http.StatusNotFound, models.ErrorResponse{"User not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{"Error deleting user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.SuccessResponse{Message: "User deleted successfully"})
+}
