@@ -15,6 +15,7 @@ import (
 type Claims struct {
 	Username string `json:"username"`
 	Role     string `json:"role"`
+	UserID   int    `json:"userID"`
 	jwt.StandardClaims
 }
 
@@ -33,10 +34,11 @@ func init() {
 }
 
 // GenerateJWT
-func GenerateJWT(username string, role string) (string, error) {
+func GenerateJWT(username string, role string, userID int) (string, error) {
 	claims := Claims{
 		Username: username,
 		Role:     role,
+		UserID:   userID, // Pastikan userID dimasukkan dengan benar
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(), // Token kadaluarsa dalam 24 jam
 		},
@@ -53,7 +55,6 @@ func GenerateJWT(username string, role string) (string, error) {
 // Memverifikasi JWT di setiap request
 func JWTMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Mendapatkan token dari header
 		tokenString := c.GetHeader("Authorization")
 		if tokenString == "" {
 			c.JSON(400, gin.H{"error": "Authorization token is required"})
@@ -75,10 +76,11 @@ func JWTMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Menyimpan klaim di context
 		claims, _ := token.Claims.(*Claims)
+
 		c.Set("username", claims.Username)
 		c.Set("role", claims.Role)
+		c.Set("userID", claims.UserID)
 
 		c.Next()
 	}

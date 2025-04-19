@@ -37,7 +37,7 @@ func SetupRoutes(r *gin.Engine) {
 	protected.PUT("/schedules/by", middleware.RoleRequired("admin"), handler.UpdateSchedule)    // Update jadwal dokter
 	protected.DELETE("/schedules/by", middleware.RoleRequired("admin"), handler.DeleteSchedule) // Delete jadwal dokter
 
-	//schedule exceptions's routes
+	// Schedule exceptions's routes
 	protected.POST("/schedule_exceptions", middleware.RoleRequired("admin"), handler.CreateScheduleException)      // Menambah pengecualian jadwal
 	protected.GET("/schedule_exceptions", middleware.RoleRequired("admin"), handler.GetAllScheduleExceptions)      // Melihat pengecualian jadwal
 	protected.DELETE("/schedule_exceptions/by", middleware.RoleRequired("admin"), handler.DeleteScheduleException) // Hapus pengecualian jadwal
@@ -45,5 +45,5 @@ func SetupRoutes(r *gin.Engine) {
 	// User's routes
 	protected.GET("/users/me", middleware.RoleRequired("any"), handler.GetMyProfile)    // User bisa melihat profilnya sendiri
 	protected.PUT("/users/me", middleware.RoleRequired("any"), handler.UpdateMyProfile) // User bisa mengupdate profilnya sendiri
-
+	protected.POST("/appointments", middleware.RoleRequired("any"), handler.CreateAppointment)  // Membuat janji kontrol
 }

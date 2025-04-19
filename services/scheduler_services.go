@@ -6,6 +6,7 @@ import (
 	"MedSched/models"
 	"database/sql"
 	"fmt"
+	"time"
 )
 
 func CreateSchedule(schedule *models.Schedule) error {
@@ -75,6 +76,27 @@ func GetScheduleByID(id string) (*models.Schedule, error) {
 	}
 
 	return &schedule, nil
+}
+
+// GetDoctorIDFromSchedule - Mencari doctor_id berdasarkan schedule_id
+func GetDoctorIDFromSchedule(scheduleID int) (int, error) {
+    db, err := config.SetupDatabase()
+    if err != nil {
+        return 0, err
+    }
+    defer db.Close()
+
+    var doctorID int
+    sqlStatement := `SELECT doctor_id FROM schedules WHERE id=$1`
+    err = db.QueryRow(sqlStatement, scheduleID).Scan(&doctorID)
+    if err != nil {
+        if err == sql.ErrNoRows {
+            return 0, fmt.Errorf("schedule not found")
+        }
+        return 0, err
+    }
+
+    return doctorID, nil
 }
 
 // UpdateSchedule - Memperbarui jadwal dokter berdasarkan ID
@@ -177,6 +199,29 @@ func GetScheduleExceptionByID(id string) (*models.ScheduleException, error) {
 		return nil, err
 	}
 
+	return &exception, nil
+}
+
+// CheckScheduleException - Mengecek apakah ada pengecualian untuk jadwal dokter
+func CheckScheduleException(scheduleID int, appointmentTime time.Time) (*models.ScheduleException, error) {
+	db, err := config.SetupDatabase()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	var exception models.ScheduleException
+	// Memeriksa apakah jadwal memiliki pengecualian pada tanggal tertentu
+	sqlStatement := `SELECT id, schedule_id, exception_date FROM schedule_exceptions WHERE schedule_id=$1 AND exception_date=$2`
+	err = db.QueryRow(sqlStatement, scheduleID, appointmentTime.Format("2006-01-02")).Scan(&exception.ID, &exception.ScheduleID, &exception.ExceptionDate)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Tidak ada pengecualian
+		}
+		return nil, err
+	}
+
+	// Jika ada pengecualian, kembalikan data pengecualian
 	return &exception, nil
 }
 
