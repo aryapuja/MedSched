@@ -11,11 +11,17 @@ VALUES
 ('Dr. Sekar', 'Gigi', '08234567890');
 
 -- schedule
-INSERT INTO Schedules (doctor_id, schedule_date, start_time, end_time, available_slots)
+INSERT INTO schedules (doctor_id, day_of_week, start_time, end_time, available_slot) 
 VALUES 
-(1, '2025-04-17', '09:00:00', '12:00:00', 5),
-(1, '2025-04-17', '14:00:00', '17:00:00', 3),
-(2, '2025-04-18', '08:00:00', '11:00:00', 4);
+(1, 'Senin', '09:00:00', '12:00:00', 2),
+(1, 'Selasa', '13:00:00', '16:00:00', 2),
+(2, 'Senin', '10:00:00', '14:00:00', 2),
+(2, 'Rabu', '08:00:00', '12:00:00', 2);
+
+INSERT INTO schedule_exceptions (schedule_id, exception_date) 
+VALUES 
+(1, '2025-04-21'),
+(2, '2025-04-23');
 
 -- appointment
 INSERT INTO Appointments (user_id, schedule_id, appointment_date, status)

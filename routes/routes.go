@@ -23,6 +23,25 @@ func SetupRoutes(r *gin.Engine) {
 	protected.PUT("/users/by", middleware.RoleRequired("admin"), handler.UpdateUser)      // update data user lain
 	protected.DELETE("/users/by", middleware.RoleRequired("admin"), handler.DeleteUser)   // hapus user lain
 
+	// Doctor's routes
+	protected.GET("/doctors", middleware.RoleRequired("admin"), handler.GetAllDoctors)      // Melihat daftar dokter
+	protected.GET("/doctors/by", middleware.RoleRequired("admin"), handler.GetDoctorByID)   // Mencari dokter berdasarkan ID
+	protected.POST("/doctors", middleware.RoleRequired("admin"), handler.CreateDoctor)      // Membuat dokter baru
+	protected.PUT("/doctors/by", middleware.RoleRequired("admin"), handler.UpdateDoctor)    // Update dokter
+	protected.DELETE("/doctors/by", middleware.RoleRequired("admin"), handler.DeleteDoctor) // Delete dokter
+
+	// Schedule's routes
+	protected.POST("/schedules", middleware.RoleRequired("admin"), handler.CreateSchedule)      // Membuat jadwal dokter baru
+	protected.GET("/schedules", middleware.RoleRequired("admin"), handler.GetAllSchedules)      // Melihat semua jadwal dokter
+	protected.GET("/schedules/by", middleware.RoleRequired("admin"), handler.GetScheduleByID)   // Mencari jadwal dokter berdasarkan ID
+	protected.PUT("/schedules/by", middleware.RoleRequired("admin"), handler.UpdateSchedule)    // Update jadwal dokter
+	protected.DELETE("/schedules/by", middleware.RoleRequired("admin"), handler.DeleteSchedule) // Delete jadwal dokter
+
+	//schedule exceptions's routes
+	protected.POST("/schedule_exceptions", middleware.RoleRequired("admin"), handler.CreateScheduleException)      // Menambah pengecualian jadwal
+	protected.GET("/schedule_exceptions", middleware.RoleRequired("admin"), handler.GetAllScheduleExceptions)      // Melihat pengecualian jadwal
+	protected.DELETE("/schedule_exceptions/by", middleware.RoleRequired("admin"), handler.DeleteScheduleException) // Hapus pengecualian jadwal
+
 	// User's routes
 	protected.GET("/users/me", middleware.RoleRequired("any"), handler.GetMyProfile)    // User bisa melihat profilnya sendiri
 	protected.PUT("/users/me", middleware.RoleRequired("any"), handler.UpdateMyProfile) // User bisa mengupdate profilnya sendiri
