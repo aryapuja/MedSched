@@ -4,6 +4,7 @@ import (
 	"MedSched/config"
 	"MedSched/models"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/robfig/cron/v3"
@@ -11,16 +12,19 @@ import (
 )
 
 func SendEmail(recipientEmail, subject, body string) error {
+	// Ambil email dan password dari environment variables
+	emailUser := os.Getenv("EMAIL_USER")
+	emailPassword := os.Getenv("EMAIL_PASSWORD")
 	m := gomail.NewMessage()
 
 	// Set email pengirim dan penerima
-	m.SetHeader("From", "frozenforce4321@gmail.com") // email pengirim
+	m.SetHeader("From", emailUser) // email pengirim
 	m.SetHeader("To", recipientEmail)
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", body)
 
 	// Set konfigurasi server SMTP
-	d := gomail.NewDialer("smtp.gmail.com", 587, "frozenforce4321@gmail.com", "wrlw wwvg rgav yrnr")
+	d := gomail.NewDialer("smtp.gmail.com", 587, emailUser, emailPassword)
 
 	// Kirim email
 	if err := d.DialAndSend(m); err != nil {
@@ -51,13 +55,16 @@ func LogNotification(userID int, appointmentID int, notificationType string, sta
 
 // SendReminderEmail - Mengirimkan email pengingat H-1
 func SendReminderEmail(patientEmail, appointmentTime string) error {
+	emailUser := os.Getenv("EMAIL_USER")
+	emailPassword := os.Getenv("EMAIL_PASSWORD")
+
 	m := gomail.NewMessage()
-	m.SetHeader("From", "frozenforce4321@gmail.com")
+	m.SetHeader("From", emailUser)
 	m.SetHeader("To", patientEmail)
 	m.SetHeader("Subject", "Pengingat Jadwal Kontrol")
 	m.SetBody("text/html", fmt.Sprintf("<h1>Reminder</h1><p>Jadwal kontrol Anda dilakukan pada: %s</p>", appointmentTime))
 
-	d := gomail.NewDialer("smtp.gmail.com", 587, "frozenforce4321@gmail.com", "wrlw wwvg rgav yrnr")
+	d := gomail.NewDialer("smtp.gmail.com", 587, emailUser, emailPassword)
 	if err := d.DialAndSend(m); err != nil {
 		return fmt.Errorf("gagal mengirimkan email pengingat: %v", err)
 	}

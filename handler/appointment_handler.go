@@ -127,7 +127,7 @@ func CreateAppointment(c *gin.Context) {
 		return
 	}
 	subject := "Konfirmasi Jadwal Kontrol"
-	body := fmt.Sprintf("<h1>Jadwal Kontrol</h1><p>Jadwal pertemuan Anda dengan %s dijadwalkan pada: %s</p>", appointment.AppointmentTime, doctorName)
+	body := fmt.Sprintf("<h1>Jadwal Kontrol</h1><p>Jadwal pertemuan Anda dengan %s dijadwalkan pada: %s</p>", doctorName, appointment.AppointmentTime)
 
 	if err := services.SendEmail(patientEmail, subject, body); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengirimkan email konfirmasi"})

@@ -37,3 +37,10 @@ func SetupDatabase() (*sql.DB, error) {
 	log.Println("Connected to the database")
 	return db, nil
 }
+
+func GetEmailCredentials() (string, string) {
+	email := os.Getenv("EMAIL_USER")
+	password := os.Getenv("EMAIL_PASSWORD")
+
+	return email, password
+}
