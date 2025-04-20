@@ -19,9 +19,11 @@ import (
 func main() {
 
 	//file .env
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file")
+	if os.Getenv("RAILWAY_ENV") == "" { // Pastikan variabel ini diatur di Railway atau hanya ada di lokal
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatalf("Error loading .env file")
+		}
 	}
 
 	// DB
