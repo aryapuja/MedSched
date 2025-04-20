@@ -9,11 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary Login a user and generate a JWT token
-// @Description This endpoint allows a registered user to log in with their username and password, and receive a JWT token for authentication.
+// @Summary Masuk sebagai user dan menghasilkan token JWT
+// @Description Endpoint ini memungkinkan user yang terdaftar untuk login dengan username dan password, serta menerima token JWT untuk autentikasi.
+// @Tags autentikasi
 // @Accept json
 // @Produce json
-// @Param loginRequest body models.LoginRequest true "User login data"
+// @Param loginRequest body models.LoginRequest true "Data login user"
 // @Success 200 {object} models.LoginResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 401 {object} models.ErrorResponse
@@ -27,7 +28,7 @@ func LoginUser(c *gin.Context) {
 
 	// Bind JSON request body
 	if err := c.ShouldBindJSON(&loginRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
 		return
 	}
 
@@ -37,10 +38,10 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	// Ambil data pengguna dari database
+	// Ambil data user dari database
 	user, err := services.GetUserByUsername(loginRequest.Username)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User tidak ditemukan"})
 		return
 	}
 
@@ -52,11 +53,12 @@ func LoginUser(c *gin.Context) {
 	})
 }
 
-// @Summary Register a new user
-// @Description This endpoint allows a new user to register with their username, email, password, full name, gender, and birth date.
+// @Summary Daftar user baru
+// @Description Endpoint ini memungkinkan user baru untuk mendaftar dengan username, email, password, nama lengkap, jenis kelamin, dan tanggal lahir.
+// @Tags user
 // @Accept json
 // @Produce json
-// @Param user body models.User true "User registration data"
+// @Param user body models.User true "Data pendaftaran user"
 // @Success 200 {object} models.SuccessResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 409 {object} models.ErrorResponse
@@ -65,7 +67,7 @@ func LoginUser(c *gin.Context) {
 func RegisterUser(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Input tidak valid"})
 		return
 	}
 
@@ -75,27 +77,27 @@ func RegisterUser(c *gin.Context) {
 
 	// Validasi kolom diisi
 	if user.FullName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Full name is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Full name harus diisi"})
 		return
 	}
 	if user.Gender == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Gender is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Gender harus diisi"})
 		return
 	}
 	if user.BirthDate == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Birth date is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Birth date harus diisi"})
 		return
 	}
 	if user.Username == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Username is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username harus diisi"})
 		return
 	}
 	if user.Email == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email harus diisi"})
 		return
 	}
 	if user.Password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Password is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password harus diisi"})
 		return
 	}
 
@@ -103,13 +105,13 @@ func RegisterUser(c *gin.Context) {
 	emailRegex := `^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$`
 	re := regexp.MustCompile(emailRegex)
 	if !re.MatchString(user.Email) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Format email tidak valid"})
 		return
 	}
 
 	// Validasi panjang password
 	if len(user.Password) < 6 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Password must be at least 6 characters"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password harus minimal 6 karakte"})
 		return
 	}
 
@@ -117,30 +119,30 @@ func RegisterUser(c *gin.Context) {
 	if err := services.RegisterUser(&user); err != nil {
 		// Jika ada error saat pendaftaran, periksa jenis error
 		if err.Error() == "username already registered" {
-			c.JSON(http.StatusConflict, gin.H{"error": "Username already registered"})
+			c.JSON(http.StatusConflict, gin.H{"error": "Username sudah terdaftar"})
 			return
 		}
 		if err.Error() == "email already registered" {
-			c.JSON(http.StatusConflict, gin.H{"error": "Email already registered"})
+			c.JSON(http.StatusConflict, gin.H{"error": "Email sudah terdaftar"})
 			return
 		}
 		// Log error
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating user", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error membuat user", "details": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "User berhasil dibuat"})
 }
 
-// @Summary Get all users
-// @Description This endpoint allows an admin to view all registered users in the system.
+// @Summary Ambil data semua Users
+// @Description Endpoint ini memungkinkan admin untuk melihat user.
 // @Accept json
 // @Produce json
 // @Success 200 {array} models.User
 // @Failure 500 {object} models.ErrorResponse
 // @Router /users [get]
 func GetAllUsers(c *gin.Context) {
-	// Panggil service untuk mengambil semua pengguna
+	// Panggil service untuk mengambil semua user
 	users, err := services.GetAllUsers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse{"Error fetching users"})
@@ -150,27 +152,27 @@ func GetAllUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-// @Summary Get user data based on query parameters
-// @Description This endpoint allows an admin to view users based on either username or role.
+// @Summary Ambil data user berdasarkan parameter query
+// @Description Endpoint ini memungkinkan admin untuk melihat user berdasarkan username atau role.
 // @Accept json
 // @Produce json
-// @Param username query string false "Username of the user"
-// @Param role query string false "Role of the user"
-// @Success 200 {array} models.User "List of users"
-// @Failure 400 {object} models.ErrorResponse "Invalid request"
-// @Failure 404 {object} models.ErrorResponse "User(s) not found"
-// @Failure 500 {object} models.ErrorResponse "Internal server error"
-// @Router /users/by? [get]
+// @Param username query string false "Username user"
+// @Param role query string false "Role user"
+// @Success 200 {array} models.User "Daftar user"
+// @Failure 400 {object} models.ErrorResponse "Permintaan tidak valid"
+// @Failure 404 {object} models.ErrorResponse "user tidak ditemukan"
+// @Failure 500 {object} models.ErrorResponse "Error server internal"
+// @Router /users/by [get]
 func GetUsersByQuery(c *gin.Context) {
 	username := c.DefaultQuery("username", "")
 	role := c.DefaultQuery("role", "")
 
-	// ambil data pengguna berdasarkan query
+	// ambil data user berdasarkan query
 	if username != "" {
 		// Ambil user berdasarkan username
 		users, err := services.GetUserByUsername(username)
 		if err != nil {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{"User not found"})
+			c.JSON(http.StatusNotFound, models.ErrorResponse{"User tidak ditemukan"})
 			return
 		}
 		c.JSON(http.StatusOK, users)
@@ -178,26 +180,26 @@ func GetUsersByQuery(c *gin.Context) {
 		// Ambil user berdasarkan role
 		users, err := services.GetUserByRole(role)
 		if err != nil {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{"Users with the specified role not found"})
+			c.JSON(http.StatusNotFound, models.ErrorResponse{"User dengan role yang ditentukan tidak ditemukan"})
 			return
 		}
 		if len(users) == 0 {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{"No users found with role: " + role})
+			c.JSON(http.StatusNotFound, models.ErrorResponse{"Tidak ada user ditemukan dengan role: " + role})
 			return
 		}
 		c.JSON(http.StatusOK, users)
 	} else {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{"Username or role must be provided"})
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{"Username atau role harus disediakan"})
 	}
 }
 
-// @Summary Update user data
-// @Description This endpoint allows an admin to update a user's data by either username or ID using query parameters.
+// @Summary Update data user
+// @Description Endpoint ini memungkinkan admin untuk mengupdate data user berdasarkan username atau ID user.
 // @Accept json
 // @Produce json
-// @Param username query string false "Username of the user"
-// @Param id query string false "ID of the user"
-// @Param user body models.User true "User update data"
+// @Param username query string false "Username user"
+// @Param id query string false "ID User"
+// @Param user body models.User true "Data pembaruan user"
 // @Success 200 {object} models.SuccessResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 404 {object} models.ErrorResponse
@@ -219,22 +221,22 @@ func UpdateUser(c *gin.Context) {
 	if username != "" {
 		user, err = services.GetUserByUsername(username)
 	} else if id != "" {
-		user, err = services.GetUserByID(id) // Pastikan kamu memiliki fungsi GetUserByID di service
+		user, err = services.GetUserByID(id)
 	}
 
 	if err != nil || user == nil {
-		c.JSON(http.StatusNotFound, models.ErrorResponse{"User not found"})
+		c.JSON(http.StatusNotFound, models.ErrorResponse{"User tidak ditemukan"})
 		return
 	}
 
-	// Bind data pengguna untuk diupdate
+	// Bind data user untuk diupdate
 	var updatedUser models.User
 	if err := c.ShouldBindJSON(&updatedUser); err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse{"Invalid input"})
 		return
 	}
 
-	// Update data pengguna
+	// Update data user
 	var updateErr error
 	if username != "" {
 		updateErr = services.UpdateUser(username, &updatedUser)
@@ -250,8 +252,8 @@ func UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, models.SuccessResponse{Message: "User updated successfully"})
 }
 
-// @Summary Get the current user's profile
-// @Description This endpoint allows the user to view their own profile.
+// @Summary Mengambil data user itu sendiri
+// @Description Endpoint ini memungkinkan user melihat informasi user itu sendiri.
 // @Accept json
 // @Produce json
 // @Success 200 {object} models.User
@@ -261,21 +263,21 @@ func UpdateUser(c *gin.Context) {
 func GetMyProfile(c *gin.Context) {
 	username, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user belum diverifikasi"})
 		return
 	}
 
 	user, err := services.GetUserByUsername(username.(string))
 	if err != nil {
-		c.JSON(http.StatusNotFound, models.ErrorResponse{"User not found"})
+		c.JSON(http.StatusNotFound, models.ErrorResponse{"User tidak ditemukan"})
 		return
 	}
 
 	c.JSON(http.StatusOK, user)
 }
 
-// @Summary Update the current user's profile
-// @Description This endpoint allows the user to update their own profile.
+// @Summary Update data user
+// @Description Endpoint ini memungkinkan user mengubah informasi user itu sendiri.
 // @Accept json
 // @Produce json
 // @Param user body models.User true "User update data"
@@ -287,20 +289,20 @@ func GetMyProfile(c *gin.Context) {
 func UpdateMyProfile(c *gin.Context) {
 	username, exists := c.Get("username")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user belum diverifikasi"})
 		return
 	}
 
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{"Invalid input"})
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{"Input tidak valid"})
 		return
 	}
 
-	// Update data pengguna
+	// Update data user
 	if err := services.UpdateUser(username.(string), &user); err != nil {
-		if err.Error() == "user not found" {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{"User not found"})
+		if err.Error() == "user tidak ditemukan" {
+			c.JSON(http.StatusNotFound, models.ErrorResponse{"User tidak ditemukan"})
 			return
 		}
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse{"Error updating user"})
@@ -310,12 +312,12 @@ func UpdateMyProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, models.SuccessResponse{Message: "User updated successfully"})
 }
 
-// @Summary Delete a user
-// @Description This endpoint allows an admin to delete a user by either username or ID using query parameters.
+// @Summary Menghapus user
+// @Description Endpoint ini memungkinkan admin untuk menghapus informasi user berdasaarkan Username/ID.
 // @Accept json
 // @Produce json
-// @Param username query string false "Username of the user"
-// @Param id query string false "ID of the user"
+// @Param username query string false "Username userr"
+// @Param id query string false "ID User"
 // @Success 200 {object} models.SuccessResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 404 {object} models.ErrorResponse
@@ -327,7 +329,7 @@ func DeleteUser(c *gin.Context) {
 
 	// Cek apakah salah satu parameter query ada
 	if username == "" && id == "" {
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{"Username or ID must be provided"})
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{"username / ID harus disediakan"})
 		return
 	}
 
@@ -337,11 +339,11 @@ func DeleteUser(c *gin.Context) {
 	if username != "" {
 		user, err = services.GetUserByUsername(username)
 	} else if id != "" {
-		user, err = services.GetUserByID(id) // Pastikan kamu memiliki fungsi GetUserByID di service
+		user, err = services.GetUserByID(id)
 	}
 
 	if err != nil || user == nil {
-		c.JSON(http.StatusNotFound, models.ErrorResponse{"User not found"})
+		c.JSON(http.StatusNotFound, models.ErrorResponse{"User tidak ditemukan"})
 		return
 	}
 
@@ -354,13 +356,13 @@ func DeleteUser(c *gin.Context) {
 	}
 
 	if err != nil {
-		if err.Error() == "user not found" {
-			c.JSON(http.StatusNotFound, models.ErrorResponse{"User not found"})
+		if err.Error() == "user tidak ditemukan" {
+			c.JSON(http.StatusNotFound, models.ErrorResponse{"User tidak ditemukan"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{"Error deleting user"})
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{"Error menghapus data user"})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.SuccessResponse{Message: "User deleted successfully"})
+	c.JSON(http.StatusOK, models.SuccessResponse{Message: "Data user berhasil dihapus"})
 }

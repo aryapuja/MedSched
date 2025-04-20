@@ -8,6 +8,7 @@ import (
 	"MedSched/config"
 	_ "MedSched/docs"
 	"MedSched/routes"
+	"MedSched/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -37,6 +38,10 @@ func main() {
 
 	// Setup Routes
 	routes.SetupRoutes(r)
+
+	// scheduler pengingat
+	services.StartReminderScheduler()
+	// log.Println("Scheduler started")
 
 	port := os.Getenv("PORT")
 	if port == "" {

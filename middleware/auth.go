@@ -38,7 +38,7 @@ func GenerateJWT(username string, role string, userID int) (string, error) {
 	claims := Claims{
 		Username: username,
 		Role:     role,
-		UserID:   userID, // Pastikan userID dimasukkan dengan benar
+		UserID:   userID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(), // Token kadaluarsa dalam 24 jam
 		},

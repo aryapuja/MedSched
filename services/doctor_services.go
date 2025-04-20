@@ -11,7 +11,7 @@ import (
 func CreateDoctor(doctor *models.Doctor) error {
 	db, err := config.SetupDatabase()
 	if err != nil {
-		return fmt.Errorf("Error connecting to database: %v", err)
+		return fmt.Errorf("Gagal menghubungkan ke database: %v", err)
 	}
 	defer db.Close()
 
@@ -19,7 +19,7 @@ func CreateDoctor(doctor *models.Doctor) error {
 	sqlStatement := `INSERT INTO doctors (name, specialization, contact_info) VALUES ($1, $2, $3)`
 	_, err = db.Exec(sqlStatement, doctor.Name, doctor.Specialization, doctor.ContactInfo)
 	if err != nil {
-		return fmt.Errorf("Error inserting doctor into database: %v", err)
+		return fmt.Errorf("Gagal menambahkan data dokter ke database: %v", err)
 	}
 
 	return nil
@@ -29,27 +29,27 @@ func CreateDoctor(doctor *models.Doctor) error {
 func GetAllDoctors() ([]models.Doctor, error) {
 	db, err := config.SetupDatabase()
 	if err != nil {
-		return nil, fmt.Errorf("Error connecting to database: %v", err)
+		return nil, fmt.Errorf("Gagal menghubungkan ke database: %v", err)
 	}
 	defer db.Close()
 
 	var doctors []models.Doctor
 	rows, err := db.Query(`SELECT id, name, specialization, contact_info FROM doctors`)
 	if err != nil {
-		return nil, fmt.Errorf("Error fetching doctors: %v", err)
+		return nil, fmt.Errorf("Gagal mengambil data dokter: %v", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var doctor models.Doctor
 		if err := rows.Scan(&doctor.ID, &doctor.Name, &doctor.Specialization, &doctor.ContactInfo); err != nil {
-			return nil, fmt.Errorf("Error scanning doctor: %v", err)
+			return nil, fmt.Errorf("Gagal memindai data dokter: %v", err)
 		}
 		doctors = append(doctors, doctor)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("Error iterating over doctors: %v", err)
+		return nil, fmt.Errorf("Gagal dalam melakukan iterasi terhadap data dokter: %v", err)
 	}
 
 	return doctors, nil
@@ -68,7 +68,7 @@ func GetDoctorByID(id string) (*models.Doctor, error) {
 	err = db.QueryRow(sqlStatement, id).Scan(&doctor.ID, &doctor.Name, &doctor.Specialization, &doctor.ContactInfo)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("doctor not found")
+			return nil, fmt.Errorf("Data dokter tidak ditemukan")
 		}
 		return nil, err
 	}
@@ -83,11 +83,10 @@ func UpdateDoctor(id string, updatedDoctor *models.Doctor) error {
 	}
 	defer db.Close()
 
-	// Update data dokter berdasarkan ID
 	sqlStatement := `UPDATE doctors SET name=$1, specialization=$2, contact_info=$3 WHERE id=$4`
 	_, err = db.Exec(sqlStatement, updatedDoctor.Name, updatedDoctor.Specialization, updatedDoctor.ContactInfo, id)
 	if err != nil {
-		return fmt.Errorf("Error updating doctor: %v", err)
+		return fmt.Errorf("Gagal memperbarui data dokter: %v", err)
 	}
 
 	return nil
@@ -105,7 +104,7 @@ func DeleteDoctor(id string) error {
 	sqlStatement := `DELETE FROM doctors WHERE id=$1`
 	_, err = db.Exec(sqlStatement, id)
 	if err != nil {
-		return fmt.Errorf("Error deleting doctor: %v", err)
+		return fmt.Errorf("Gagal menghapus data dokter: %v", err)
 	}
 
 	return nil

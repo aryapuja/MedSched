@@ -1,4 +1,47 @@
 definitions:
+  models.Appointment:
+    properties:
+      appointment_time:
+        type: string
+      created_at:
+        type: string
+      doctor_id:
+        type: integer
+      id:
+        type: integer
+      patient_id:
+        type: integer
+      schedule_id:
+        type: integer
+    type: object
+  models.Doctor:
+    properties:
+      contact_info:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      specialization:
+        type: string
+    type: object
+  models.DoctorSchedule:
+    properties:
+      available_slots:
+        type: integer
+      day:
+        type: string
+      doctor_name:
+        type: string
+      end_time:
+        type: string
+      specialization:
+        type: string
+      start_time:
+        type: string
+    type: object
   models.ErrorResponse:
     properties:
       error:
@@ -19,6 +62,32 @@ definitions:
         type: string
       token:
         type: string
+    type: object
+  models.Schedule:
+    properties:
+      available_slot:
+        type: integer
+      created_at:
+        type: string
+      day_of_week:
+        type: string
+      doctor_id:
+        type: integer
+      end_time:
+        type: string
+      id:
+        type: integer
+      start_time:
+        type: string
+    type: object
+  models.ScheduleException:
+    properties:
+      exception_date:
+        type: string
+      id:
+        type: integer
+      schedule_id:
+        type: integer
     type: object
   models.SuccessResponse:
     properties:
@@ -47,14 +116,228 @@ definitions:
 info:
   contact: {}
 paths:
+  /appointments:
+    post:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan pasien atau admin untuk membuat janji
+        kontrol dengan dokter.
+      parameters:
+      - description: Data janji kontrol
+        in: body
+        name: appointment
+        required: true
+        schema:
+          $ref: '#/definitions/models.Appointment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Membuat janji kontrol untuk pasien
+      tags:
+      - appointment
+  /doctor_schedule:
+    get:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan semua orang melihat semua jadwal dokter
+        (nama dokter, spesialisasi, slot yang tersedia, dan jam praktek).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DoctorSchedule'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Mengambil jadwal dokter
+      tags:
+      - dokter
+  /doctors:
+    get:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk mengambil semua dokter yang
+        ada di sistem.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Doctor'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Mengambil semua data dokter
+      tags:
+      - dokter
+    post:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk membuat dokter baru.
+      parameters:
+      - description: Data pendaftaran dokter
+        in: body
+        name: doctor
+        required: true
+        schema:
+          $ref: '#/definitions/models.Doctor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Membuat dokter baru
+      tags:
+      - dokter
+  /doctors/by:
+    delete:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk menghapus dokter berdasarkan
+        ID.
+      parameters:
+      - description: ID dokter
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Menghapus dokter
+      tags:
+      - dokter
+    get:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin atau pengguna yang berwenang untuk
+        melihat informasi dokter berdasarkan ID.
+      parameters:
+      - description: ID dokter
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Doctor'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Mengambil informasi dokter berdasarkan ID
+      tags:
+      - dokter
+    put:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk umengpdate data dokter berdasarkan
+        ID.
+      parameters:
+      - description: ID dokter
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Data pembaruan dokter
+        in: body
+        name: doctor
+        required: true
+        schema:
+          $ref: '#/definitions/models.Doctor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Update data dokter
+      tags:
+      - dokter
   /login:
     post:
       consumes:
       - application/json
-      description: This endpoint allows a registered user to log in with their username
-        and password, and receive a JWT token for authentication.
+      description: Endpoint ini memungkinkan user yang terdaftar untuk login dengan
+        username dan password, serta menerima token JWT untuk autentikasi.
       parameters:
-      - description: User login data
+      - description: Data login user
         in: body
         name: loginRequest
         required: true
@@ -79,15 +362,17 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-      summary: Login a user and generate a JWT token
+      summary: Masuk sebagai user dan menghasilkan token JWT
+      tags:
+      - autentikasi
   /register:
     post:
       consumes:
       - application/json
-      description: This endpoint allows a new user to register with their username,
-        email, password, full name, gender, and birth date.
+      description: Endpoint ini memungkinkan user baru untuk mendaftar dengan username,
+        email, password, nama lengkap, jenis kelamin, dan tanggal lahir.
       parameters:
-      - description: User registration data
+      - description: Data pendaftaran user
         in: body
         name: user
         required: true
@@ -112,38 +397,21 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-      summary: Register a new user
-  /users:
-    get:
-      consumes:
-      - application/json
-      description: This endpoint allows an admin to view all registered users in the
-        system.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/models.User'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-      summary: Get all users
-  /users/{id}:
+      summary: Daftar user baru
+      tags:
+      - user
+  /schedule_exceptions:
     delete:
       consumes:
       - application/json
-      description: This endpoint allows an admin to delete any user's data.
+      description: Endpoint ini memungkinkan admin untuk menghapus pengecualian jadwal
+        berdasarkan ID.
       parameters:
-      - description: User ID
-        in: path
+      - description: ID pengecualian jadwal
+        in: query
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -163,18 +431,325 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-      summary: Delete a user
+      summary: Menghapus pengecualian jadwal
+      tags:
+      - pengecualian jadwal
+    get:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk mengambil semua pengecualian
+        jadwal yang ada.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ScheduleException'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Mengambil semua pengecualian jadwal
+      tags:
+      - pengecualian jadwal
+    post:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk menambahkan tanggal pengecualian
+        untuk jadwal.
+      parameters:
+      - description: Data pengecualian jadwal
+        in: body
+        name: exception
+        required: true
+        schema:
+          $ref: '#/definitions/models.ScheduleException'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Membuat pengecualian jadwal
+      tags:
+      - pengecualian jadwal
+  /schedules:
+    get:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk mengambil semua jadwal dokter.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Schedule'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Mengambil semua jadwal dokter
+      tags:
+      - jadwal
+    post:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk membuat jadwal untuk dokter.
+      parameters:
+      - description: Data jadwal dokter
+        in: body
+        name: schedule
+        required: true
+        schema:
+          $ref: '#/definitions/models.Schedule'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Membuat jadwal untuk dokter
+      tags:
+      - jadwal
+  /schedules/by:
+    delete:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk menghapus jadwal berdasarkan
+        ID.
+      parameters:
+      - description: ID jadwal
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Menghapus jadwal
+      tags:
+      - jadwal
+    get:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk mengambil jadwal dokter berdasarkan
+        ID.
+      parameters:
+      - description: ID jadwal
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Schedule'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Mengambil jadwal berdasarkan ID
+      tags:
+      - jadwal
     put:
       consumes:
       - application/json
-      description: This endpoint allows an admin to update any user's data.
+      description: Endpoint ini memungkinkan admin untuk memperbarui jadwal dokter
+        berdasarkan ID.
       parameters:
-      - description: User ID
-        in: path
+      - description: ID jadwal
+        in: query
         name: id
         required: true
-        type: integer
-      - description: User update data
+        type: string
+      - description: Data pembaruan jadwal
+        in: body
+        name: schedule
+        required: true
+        schema:
+          $ref: '#/definitions/models.Schedule'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Memperbarui jadwal
+      tags:
+      - jadwal
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk melihat user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil data semua Users
+  /users/by:
+    delete:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk menghapus informasi user
+        berdasaarkan Username/ID.
+      parameters:
+      - description: Username userr
+        in: query
+        name: username
+        type: string
+      - description: ID User
+        in: query
+        name: id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Menghapus user
+    get:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk melihat user berdasarkan
+        username atau role.
+      parameters:
+      - description: Username user
+        in: query
+        name: username
+        type: string
+      - description: Role user
+        in: query
+        name: role
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar user
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+        "400":
+          description: Permintaan tidak valid
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: user tidak ditemukan
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Error server internal
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Ambil data user berdasarkan parameter query
+    put:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk mengupdate data user berdasarkan
+        username atau ID user.
+      parameters:
+      - description: Username user
+        in: query
+        name: username
+        type: string
+      - description: ID User
+        in: query
+        name: id
+        type: string
+      - description: Data pembaruan user
         in: body
         name: user
         required: true
@@ -199,42 +774,57 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-      summary: Update user data
-  /users/by:
+      summary: Update data user
+  /users/me:
     get:
       consumes:
       - application/json
-      description: This endpoint allows an admin to view users based on either username
-        or role.
-      parameters:
-      - description: Username of the user
-        in: query
-        name: username
-        type: string
-      - description: Role of the user
-        in: query
-        name: role
-        type: string
+      description: Endpoint ini memungkinkan user melihat informasi user itu sendiri.
       produces:
       - application/json
       responses:
         "200":
-          description: List of users
+          description: OK
           schema:
-            items:
-              $ref: '#/definitions/models.User'
-            type: array
+            $ref: '#/definitions/models.User'
         "400":
-          description: Invalid request
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Mengambil data user itu sendiri
+    put:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan user mengubah informasi user itu sendiri.
+      parameters:
+      - description: User update data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.ErrorResponse'
         "404":
-          description: User(s) not found
+          description: Not Found
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-      summary: Get user data based on query parameters
+      summary: Update data user
 swagger: "2.0"

@@ -18,42 +18,42 @@ import (
 func RegisterUser(user *models.User) error {
 	db, err := config.SetupDatabase()
 	if err != nil {
-		return fmt.Errorf("Error connecting to database: %v", err)
+		return fmt.Errorf("Gagal menghubungkan ke database: %v", err)
 	}
 	defer db.Close()
 
-	// Cek username
+	// Cek apakah username sudah terdaftar
 	usernameExists, err := CheckIfUsernameExists(user.Username)
 	if err != nil {
-		return fmt.Errorf("Error checking username existence: %v", err)
+		return fmt.Errorf("Gagal memeriksa ketersediaan username: %v", err)
 	}
 	if usernameExists {
-		return errors.New("username already registered")
+		return errors.New("Username sudah terdaftar")
 	}
 
-	// Cek email
+	// Cek apakah email sudah terdaftar
 	emailExists, err := CheckIfEmailExists(user.Email)
 	if err != nil {
-		return fmt.Errorf("Error checking email existence: %v", err)
+		return fmt.Errorf("Gagal memeriksa ketersediaan email: %v", err)
 	}
 	if emailExists {
-		return errors.New("email already registered")
+		return errors.New("Email sudah terdaftar")
 	}
 
-	// Hash password
+	// Enkripsi password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return fmt.Errorf("Error hashing password: %v", err)
+		return fmt.Errorf("Gagal mengenkripsi password: %v", err)
 	}
 	user.Password = string(hashedPassword)
 
 	// Simpan ke database
 	sqlStatement := `
-		INSERT INTO users (username, email, password, full_name, gender, birth_date, role)
-		VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
+        INSERT INTO users (username, email, password, full_name, gender, birth_date, role)
+        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
 	err = db.QueryRow(sqlStatement, user.Username, user.Email, user.Password, user.FullName, user.Gender, user.BirthDate, user.Role).Scan(&user.ID)
 	if err != nil {
-		return fmt.Errorf("Error inserting user into database: %v", err)
+		return fmt.Errorf("Gagal menyimpan data pengguna ke database: %v", err)
 	}
 
 	return nil
@@ -63,21 +63,21 @@ func RegisterUser(user *models.User) error {
 func GetAllUsers() ([]models.User, error) {
 	db, err := config.SetupDatabase()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Gagal menghubungkan ke database: %v", err)
 	}
 	defer db.Close()
 
 	var users []models.User
 	rows, err := db.Query(`SELECT id, username, full_name, email, gender, birth_date, role FROM users`)
 	if err != nil {
-		return nil, fmt.Errorf("Error fetching users: %v", err)
+		return nil, fmt.Errorf("Gagal mengambil data pengguna: %v", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var user models.User
 		if err := rows.Scan(&user.ID, &user.Username, &user.FullName, &user.Email, &user.Gender, &user.BirthDate, &user.Role); err != nil {
-			return nil, fmt.Errorf("Error scanning user: %v", err)
+			return nil, fmt.Errorf("Gagal memindai data pengguna: %v", err)
 		}
 		users = append(users, user)
 	}
@@ -93,7 +93,7 @@ func GetAllUsers() ([]models.User, error) {
 func GetUserByUsername(username string) (*models.User, error) {
 	db, err := config.SetupDatabase()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Gagal menghubungkan ke database: %v", err)
 	}
 	defer db.Close()
 
@@ -102,7 +102,7 @@ func GetUserByUsername(username string) (*models.User, error) {
 	err = db.QueryRow(sqlStatement, username).Scan(&user.ID, &user.Username, &user.Password, &user.Email, &user.Role, &user.FullName, &user.Gender, &user.BirthDate)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user not found")
+			return nil, fmt.Errorf("Pengguna tidak ditemukan")
 		}
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func GetUserByID(id string) (*models.User, error) {
 	err = db.QueryRow(sqlStatement, id).Scan(&user.ID, &user.Username, &user.Password, &user.Email, &user.Role, &user.FullName, &user.Gender, &user.BirthDate)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("user not found")
+			return nil, fmt.Errorf("user tidak ditemukan")
 		}
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func GetUserByRole(role string) ([]models.User, error) {
 	sqlStatement := `SELECT id, username, password, email, role, full_name, gender, birth_date FROM users WHERE role=$1`
 	rows, err := db.Query(sqlStatement, role)
 	if err != nil {
-		return nil, fmt.Errorf("Error fetching users: %v", err)
+		return nil, fmt.Errorf("kesalahan saat mengambil data users: %v", err)
 	}
 	defer rows.Close()
 
@@ -149,7 +149,7 @@ func GetUserByRole(role string) ([]models.User, error) {
 	for rows.Next() {
 		var user models.User
 		if err := rows.Scan(&user.ID, &user.Username, &user.Password, &user.Email, &user.Role, &user.FullName, &user.Gender, &user.BirthDate); err != nil {
-			return nil, fmt.Errorf("Error scanning user: %v", err)
+			return nil, fmt.Errorf("kesalahan saat mengambil user: %v", err)
 		}
 		users = append(users, user)
 	}
@@ -170,7 +170,7 @@ func isID(identifier string) bool {
 func UpdateUser(identifier string, updatedUser *models.User) error {
 	db, err := config.SetupDatabase()
 	if err != nil {
-		return err
+		return fmt.Errorf("Gagal menghubungkan ke database: %v", err)
 	}
 	defer db.Close()
 
@@ -178,22 +178,16 @@ func UpdateUser(identifier string, updatedUser *models.User) error {
 	var sqlStatement string
 	if isID(identifier) {
 		// Update berdasarkan ID
-		sqlStatement = `
-			UPDATE users
-			SET username=$1, email=$2, full_name=$3, gender=$4, birth_date=$5, role=$6
-			WHERE id=$7`
+		sqlStatement = `UPDATE users SET username=$1, email=$2, full_name=$3, gender=$4, birth_date=$5, role=$6 WHERE id=$7`
 		_, err = db.Exec(sqlStatement, updatedUser.Username, updatedUser.Email, updatedUser.FullName, updatedUser.Gender, updatedUser.BirthDate, updatedUser.Role, identifier)
 	} else {
 		// Update berdasarkan username
-		sqlStatement = `
-			UPDATE users
-			SET username=$1, email=$2, full_name=$3, gender=$4, birth_date=$5, role=$6
-			WHERE username=$7`
+		sqlStatement = `UPDATE users SET username=$1, email=$2, full_name=$3, gender=$4, birth_date=$5, role=$6 WHERE username=$7`
 		_, err = db.Exec(sqlStatement, updatedUser.Username, updatedUser.Email, updatedUser.FullName, updatedUser.Gender, updatedUser.BirthDate, updatedUser.Role, identifier)
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error updating user: %v", err)
+		return fmt.Errorf("Gagal memperbarui pengguna: %v", err)
 	}
 
 	return nil
@@ -203,7 +197,7 @@ func UpdateUser(identifier string, updatedUser *models.User) error {
 func DeleteUser(identifier string) error {
 	db, err := config.SetupDatabase()
 	if err != nil {
-		return err
+		return fmt.Errorf("Gagal menghubungkan ke database: %v", err)
 	}
 	defer db.Close()
 
@@ -220,7 +214,7 @@ func DeleteUser(identifier string) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error deleting user: %v", err)
+		return fmt.Errorf("Gagal menghapus pengguna: %v", err)
 	}
 
 	return nil
@@ -240,14 +234,14 @@ func AuthenticateUser(username, password string) (string, error) {
 	err = db.QueryRow(query, username).Scan(&user.ID, &user.Username, &user.Password, &user.Role)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return "", errors.New("invalid username or password")
+			return "", errors.New("username atau password tidak valid")
 		}
 		return "", err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return "", errors.New("invalid password")
+		return "", errors.New("password tidak valid")
 	}
 
 	// Generate JWT token
@@ -270,7 +264,7 @@ func generateJWT(user models.User) (string, error) {
 
 	secretKey := os.Getenv("SECRET_KEY")
 	if secretKey == "" {
-		return "", errors.New("SECRET_KEY is not set in the environment variables")
+		return "", errors.New("SECRET_KEY tidak di set di environment variables")
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

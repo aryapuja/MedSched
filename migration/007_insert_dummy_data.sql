@@ -20,17 +20,5 @@ VALUES
 
 INSERT INTO schedule_exceptions (schedule_id, exception_date) 
 VALUES 
-(1, '2025-04-21'),
+(1, '2025-04-28'),
 (2, '2025-04-23');
-
--- appointment
-INSERT INTO Appointments (user_id, schedule_id, appointment_date, status)
-VALUES 
-(1, 1, '2025-04-17', 'pending'),
-(2, 2, '2025-04-17', 'confirmed');
-
--- notification
-INSERT INTO Notifications (user_id, appointment_id, notification_type, status)
-VALUES 
-(1, 1, 'reminder', 'sent'),
-(2, 2, 'reminder', 'sent');

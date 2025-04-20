@@ -7,11 +7,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRoutes untuk mendefinisikan semua rute API
 func SetupRoutes(r *gin.Engine) {
 	// Public routes
 	r.POST("/register", handler.RegisterUser)
 	r.POST("/login", handler.LoginUser)
+	r.GET("/doctor_schedule", handler.GetDoctorSchedule)
 
 	// Protected routes
 	protected := r.Group("/api")
@@ -43,7 +43,7 @@ func SetupRoutes(r *gin.Engine) {
 	protected.DELETE("/schedule_exceptions/by", middleware.RoleRequired("admin"), handler.DeleteScheduleException) // Hapus pengecualian jadwal
 
 	// User's routes
-	protected.GET("/users/me", middleware.RoleRequired("any"), handler.GetMyProfile)    // User bisa melihat profilnya sendiri
-	protected.PUT("/users/me", middleware.RoleRequired("any"), handler.UpdateMyProfile) // User bisa mengupdate profilnya sendiri
-	protected.POST("/appointments", middleware.RoleRequired("any"), handler.CreateAppointment)  // Membuat janji kontrol
+	protected.GET("/users/me", middleware.RoleRequired("any"), handler.GetMyProfile)           // User bisa melihat profilnya sendiri
+	protected.PUT("/users/me", middleware.RoleRequired("any"), handler.UpdateMyProfile)        // User bisa mengupdate profilnya sendiri
+	protected.POST("/appointments", middleware.RoleRequired("any"), handler.CreateAppointment) // Membuat janji kontrol
 }
