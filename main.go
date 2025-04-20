@@ -19,14 +19,14 @@ import (
 func main() {
 
 	//file .env
-	if os.Getenv("RAILWAY_ENVIRONMENT_NAME") == "" {
-		fmt.Println("RAILWAY_ENVIRONMENT_NAME tidak terdeteksi -> Load file .env lokal")
+	if os.Getenv("RAILWAY_ENV") == "" {
+		fmt.Println("RAILWAY_ENV tidak terdeteksi -> Load file .env lokal")
 		err := godotenv.Load()
 		if err != nil {
 			log.Fatalf("Error loading .env file")
 		}
 	} else {
-		fmt.Println("RAILWAY_ENVIRONMENT_NAME terdeteksi")
+		fmt.Println("RAILWAY_ENV terdeteksi")
 	}
 
 	// DB
