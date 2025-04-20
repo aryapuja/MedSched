@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -23,14 +24,20 @@ var secretKey string
 
 // Ambil secretKey
 func init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	if os.Getenv("RAILWAY_ENV") == "" {
+		fmt.Println("Auth.go -> RAILWAY_ENV tidak terdeteksi -> Load file .env lokal")
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Auth.go -> Error loading .env file")
+		}
+	} else {
+		fmt.Println("Auth.go -> RAILWAY_ENV terdeteksi")
+		secretKey = os.Getenv("SECRET_KEY")
+		if secretKey == "" {
+			log.Fatal("SECRET_KEY is not set in .env file")
+		}
 	}
-	secretKey = os.Getenv("SECRET_KEY")
-	if secretKey == "" {
-		log.Fatal("SECRET_KEY is not set in .env file")
-	}
+
 }
 
 // GenerateJWT
