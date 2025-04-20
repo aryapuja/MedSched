@@ -11,7 +11,7 @@ import (
 	"MedSched/services"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -19,15 +19,15 @@ import (
 func main() {
 
 	//file .env
-	if os.Getenv("RAILWAY_ENV") == "" {
-		fmt.Println("RAILWAY_ENV tidak terdeteksi -> Load file .env lokal")
-		err := godotenv.Load()
-		if err != nil {
-			log.Fatalf("Error loading .env file")
-		}
-	} else {
-		fmt.Println("RAILWAY_ENV terdeteksi")
-	}
+	// if os.Getenv("RAILWAY_ENV") == "" {
+	// 	fmt.Println("RAILWAY_ENV tidak terdeteksi -> Load file .env lokal")
+	// 	err := godotenv.Load()
+	// 	if err != nil {
+	// 		log.Fatalf("Error loading .env file")
+	// 	}
+	// } else {
+	// 	fmt.Println("RAILWAY_ENV terdeteksi")
+	// }
 
 	// DB
 	db, err := config.SetupDatabase()
