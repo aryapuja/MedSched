@@ -53,7 +53,7 @@ Berikut adalah daftar API endpoints yang tersedia dalam sistem:
 **Dokter (Doctors)**
 - GET /doctors: Melihat daftar dokter.
 - GET /doctors/by: Mencari dokter berdasarkan ID.
-- POST /doctors: Membuat dokter baru (admin).
+- POST /doctors: Membuat dokter baru.
 - PUT /doctors/by: Memperbarui data dokter berdasarkan ID.
 - DELETE /doctors/by: Menghapus dokter berdasarkan ID.
 
@@ -72,5 +72,7 @@ Berikut adalah daftar API endpoints yang tersedia dalam sistem:
 ### Akses User dan Admin
 **Janji Kontrol (Appointments)**
 - POST /appointments: Membuat janji kontrol untuk pasien.
+- GET /appointments: Membuat janji kontrol untuk pasien. (Admin)
+- GET /appointments/date: Membuat janji kontrol untuk pasien. (Admin)
 
-### Swagger: **https://medsched-production.up.railway.app/swagger/**
+### **[Swagger]**(https://medsched-production.up.railway.app/swagger/index.html)

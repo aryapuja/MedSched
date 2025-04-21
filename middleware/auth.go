@@ -30,6 +30,10 @@ func init() {
 		if err != nil {
 			log.Fatal("Auth.go -> Error loading .env file")
 		}
+		secretKey = os.Getenv("SECRET_KEY")
+		if secretKey == "" {
+			log.Fatal("SECRET_KEY tidak ditemukan dalam file .env lokal")
+		}
 	} else {
 		fmt.Println("Auth.go -> RAILWAY_ENV terdeteksi")
 		secretKey = os.Getenv("SECRET_KEY")

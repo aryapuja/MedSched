@@ -16,6 +16,36 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/appointments": {
+            "get": {
+                "description": "Endpoint ini memungkinkan admin untuk melihat semua appointment yang telah dibuat.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appointment"
+                ],
+                "summary": "Melihat semua appointment yang telah dibuat",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.AppointmentWithDetails"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Endpoint ini memungkinkan pasien atau admin untuk membuat janji kontrol dengan dokter.",
                 "consumes": [
@@ -54,6 +84,53 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/appointments/date": {
+            "get": {
+                "description": "Endpoint ini memungkinkan admin untuk melihat appointment berdasarkan tanggal yang disediakan.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appointment"
+                ],
+                "summary": "Melihat appointment berdasarkan tanggal",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tanggal untuk mencari appointment, format: YYYY-MM-DD",
+                        "name": "date",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.AppointmentWithDetails"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -1086,6 +1163,32 @@ const docTemplate = `{
                 },
                 "patient_id": {
                     "type": "integer"
+                },
+                "schedule_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.AppointmentWithDetails": {
+            "type": "object",
+            "properties": {
+                "appointment_time": {
+                    "type": "string"
+                },
+                "doctor_id": {
+                    "type": "integer"
+                },
+                "doctor_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "patient_id": {
+                    "type": "integer"
+                },
+                "patient_name": {
+                    "type": "string"
                 },
                 "schedule_id": {
                     "type": "integer"

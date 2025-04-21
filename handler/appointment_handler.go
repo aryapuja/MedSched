@@ -137,10 +137,55 @@ func CreateAppointment(c *gin.Context) {
 	// Log pengiriman email ke tabel Notifications
 	notificationType := "Konfirmasi Jadwal Kontrol"
 	status := "Terkirim"
+	fmt.Printf("Appointment ID: %d\n", appointment.ID)
 	if err := services.LogNotification(appointment.PatientID, appointment.ID, notificationType, status); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mencatat pengiriman notifikasi"})
 		return
 	}
 
 	c.JSON(http.StatusOK, models.SuccessResponse{Message: "Janji kontrol berhasil dibuat"})
+}
+
+// @Summary Melihat semua appointment yang telah dibuat
+// @Description Endpoint ini memungkinkan admin untuk melihat semua appointment yang telah dibuat.
+// @Tags appointment
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.AppointmentWithDetails
+// @Failure 500 {object} models.ErrorResponse
+// @Router /appointments [get]
+func GetAllAppointments(c *gin.Context) {
+	appointments, err := services.GetAllAppointments()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data appointment"})
+		return
+	}
+
+	c.JSON(http.StatusOK, appointments)
+}
+
+// @Summary Melihat appointment berdasarkan tanggal
+// @Description Endpoint ini memungkinkan admin untuk melihat appointment berdasarkan tanggal yang disediakan.
+// @Tags appointment
+// @Accept json
+// @Produce json
+// @Param date query string true "Tanggal untuk mencari appointment, format: YYYY-MM-DD"
+// @Success 200 {array} models.AppointmentWithDetails
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /appointments/date [get]
+func GetAppointmentsWithDetail(c *gin.Context) {
+	date := c.DefaultQuery("date", "")
+	if date == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Tanggal harus disediakan"})
+		return
+	}
+
+	appointments, err := services.GetAppointmentsWithDetail(date)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data appointment"})
+		return
+	}
+
+	c.JSON(http.StatusOK, appointments)
 }

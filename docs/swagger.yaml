@@ -14,6 +14,23 @@ definitions:
       schedule_id:
         type: integer
     type: object
+  models.AppointmentWithDetails:
+    properties:
+      appointment_time:
+        type: string
+      doctor_id:
+        type: integer
+      doctor_name:
+        type: string
+      id:
+        type: integer
+      patient_id:
+        type: integer
+      patient_name:
+        type: string
+      schedule_id:
+        type: integer
+    type: object
   models.Doctor:
     properties:
       contact_info:
@@ -117,6 +134,27 @@ info:
   contact: {}
 paths:
   /appointments:
+    get:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk melihat semua appointment
+        yang telah dibuat.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.AppointmentWithDetails'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Melihat semua appointment yang telah dibuat
+      tags:
+      - appointment
     post:
       consumes:
       - application/json
@@ -149,6 +187,38 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Membuat janji kontrol untuk pasien
+      tags:
+      - appointment
+  /appointments/date:
+    get:
+      consumes:
+      - application/json
+      description: Endpoint ini memungkinkan admin untuk melihat appointment berdasarkan
+        tanggal yang disediakan.
+      parameters:
+      - description: 'Tanggal untuk mencari appointment, format: YYYY-MM-DD'
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.AppointmentWithDetails'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Melihat appointment berdasarkan tanggal
       tags:
       - appointment
   /doctor_schedule:

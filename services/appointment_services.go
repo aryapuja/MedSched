@@ -15,8 +15,9 @@ func CreateAppointment(appointment *models.Appointment) error {
 	defer db.Close()
 
 	sqlStatement := `INSERT INTO appointments (patient_id, doctor_id, schedule_id, appointment_time) 
-                     VALUES ($1, $2, $3, $4)`
-	_, err = db.Exec(sqlStatement, appointment.PatientID, appointment.DoctorID, appointment.ScheduleID, appointment.AppointmentTime)
+                     VALUES ($1, $2, $3, $4) RETURNING id`
+
+	err = db.QueryRow(sqlStatement, appointment.PatientID, appointment.DoctorID, appointment.ScheduleID, appointment.AppointmentTime).Scan(&appointment.ID)
 	if err != nil {
 		return fmt.Errorf("Gagal memasukkan data janji temu ke database: %v", err)
 	}
@@ -96,4 +97,73 @@ func GetDoctorNameByID(doctorID int) (string, error) {
 	}
 
 	return doctorName, nil
+}
+
+// GetAllAppointments - Mengambil semua data appointment
+func GetAllAppointments() ([]models.AppointmentWithDetails, error) {
+    db, err := config.SetupDatabase()
+    if err != nil {
+        return nil, err
+    }
+    defer db.Close()
+
+    var appointments []models.AppointmentWithDetails
+
+    // Query untuk mengambil appointment dengan informasi pasien dan dokter
+    query := `
+        SELECT a.id, a.patient_id, u.username AS patient_name, a.doctor_id, d.name AS doctor_name, a.schedule_id, a.appointment_time
+        FROM appointments a
+        JOIN users u ON a.patient_id = u.id
+        JOIN doctors d ON a.doctor_id = d.id
+    `
+    rows, err := db.Query(query)
+    if err != nil {
+        return nil, fmt.Errorf("Gagal mengambil data appointment: %v", err)
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+        var appointment models.AppointmentWithDetails
+        if err := rows.Scan(&appointment.ID, &appointment.PatientID, &appointment.PatientName, &appointment.DoctorID, &appointment.DoctorName, &appointment.ScheduleID, &appointment.AppointmentTime); err != nil {
+            return nil, fmt.Errorf("Gagal memindai data appointment: %v", err)
+        }
+        appointments = append(appointments, appointment)
+    }
+
+    return appointments, nil
+}
+
+// GetAppointmentsWithDetail - Mengambil data appointment berdasarkan tanggal
+func GetAppointmentsWithDetail(date string) ([]models.AppointmentWithDetails, error) {
+    db, err := config.SetupDatabase()
+    if err != nil {
+        return nil, err
+    }
+    defer db.Close()
+
+    var appointments []models.AppointmentWithDetails
+
+    // Query untuk mengambil appointment berdasarkan tanggal
+    query := `
+        SELECT a.id, a.patient_id, u.username AS patient_name, a.doctor_id, d.name AS doctor_name, a.schedule_id, a.appointment_time
+        FROM appointments a
+        JOIN users u ON a.patient_id = u.id
+        JOIN doctors d ON a.doctor_id = d.id
+        WHERE DATE(a.appointment_time) = $1
+    `
+    rows, err := db.Query(query, date)
+    if err != nil {
+        return nil, fmt.Errorf("Gagal mengambil data appointment berdasarkan tanggal: %v", err)
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+        var appointment models.AppointmentWithDetails
+        if err := rows.Scan(&appointment.ID, &appointment.PatientID, &appointment.PatientName, &appointment.DoctorID, &appointment.DoctorName, &appointment.ScheduleID, &appointment.AppointmentTime); err != nil {
+            return nil, fmt.Errorf("Gagal memindai data appointment: %v", err)
+        }
+        appointments = append(appointments, appointment)
+    }
+
+    return appointments, nil
 }

@@ -37,6 +37,10 @@ func SetupRoutes(r *gin.Engine) {
 	protected.PUT("/schedules/by", middleware.RoleRequired("admin"), handler.UpdateSchedule)    // Update jadwal dokter
 	protected.DELETE("/schedules/by", middleware.RoleRequired("admin"), handler.DeleteSchedule) // Delete jadwal dokter
 
+	// Appoinment's routes
+	protected.GET("/appointments", middleware.RoleRequired("admin"), handler.GetAllAppointments)             // Melihat semua appointment
+	protected.GET("/appointments/date", middleware.RoleRequired("admin"), handler.GetAppointmentsWithDetail) // Melihat appointment berdasarkan tanggal
+
 	// Schedule exceptions's routes
 	protected.POST("/schedule_exceptions", middleware.RoleRequired("admin"), handler.CreateScheduleException)      // Menambah pengecualian jadwal
 	protected.GET("/schedule_exceptions", middleware.RoleRequired("admin"), handler.GetAllScheduleExceptions)      // Melihat pengecualian jadwal
